@@ -1,124 +1,341 @@
-FORMA AUDIO CONVERTER 0.1.0
-THIRD-PARTY COMPONENTS, LICENSES AND SOURCE CODE AVAILABILITY
+FORMA AUDIO CONVERTER 0.1.2
+THIRD-PARTY COMPONENTS, LICENSES AND SOURCE AVAILABILITY
 
-This file accompanies the Forma Audio Converter application and describes the
-third-party software included with it. The application's own source code is
-licensed under the MIT License (see LICENSE). The components below are licensed
-under their own terms and are not covered by the MIT License.
+This file ships with the application. The notice is written in Portuguese, the
+language of the licensor; the license texts it cites are in the "licenses"
+folder and the third-party binaries are in the "local-ffmpeg" folder, both
+installed next to the application executable.
+Sections: 1 the application license (MIT), 2 inventory of the 18 distributed
+binaries, 3 to 7 the terms of each component, 8 substitution and relink of the
+LGPL libraries.
+
+O texto em portugues comeca abaixo.
+================================================================================
+
+FORMA AUDIO CONVERTER 0.1.2
+COMPONENTES DE TERCEIROS, LICENÇAS E DISPONIBILIDADE DO CÓDIGO-FONTE
+
+Este arquivo acompanha o aplicativo Forma Audio Converter e descreve o software
+de terceiros distribuído com ele. O código-fonte do próprio Forma Audio
+Converter é licenciado sob a licença MIT (ver LICENSE). Os componentes abaixo
+têm termos próprios e não são cobertos pela licença MIT.
+
+Os textos integrais das licenças citadas neste arquivo estão na pasta
+"licenses", instalada ao lado do executável do aplicativo. Os binários de
+terceiros estão na pasta "local-ffmpeg", também ao lado do executável.
 
 ================================================================================
-1. FFmpeg 9.0.2
+1. LICENÇA DO APLICATIVO
 ================================================================================
 
-Included programs and libraries, installed in the "local-ffmpeg" folder next to
-the application executable:
+Forma Audio Converter, copyright (c) 2026 Egrégora Labs.
 
-    ffmpeg.exe, ffprobe.exe, avcodec-63.dll, avdevice-63.dll, avfilter-12.dll,
-    avformat-63.dll, avutil-61.dll, swresample-7.dll, swscale-10.dll
+O código-fonte do aplicativo é distribuído sob a licença MIT. O texto integral
+está no arquivo LICENSE, instalado ao lado deste. A licença MIT se aplica
+apenas ao código do Forma Audio Converter e não se estende aos binários
+listados na seção 2, que permanecem sob as licenças indicadas.
 
-Project: https://ffmpeg.org/
+================================================================================
+2. INVENTÁRIO DOS BINÁRIOS DISTRIBUÍDOS
+================================================================================
+
+São distribuídos 18 arquivos executáveis e bibliotecas. A tabela indica, para
+cada arquivo, o projeto de origem, a versão identificada na compilação e a
+licença declarada.
+
+Arquivo              Projeto de origem        Versão   Licença
+--------------------------------------------------------------------------
+ffmpeg.exe           FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+ffprobe.exe          FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+avcodec-63.dll       FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+avdevice-63.dll      FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+avfilter-12.dll      FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+avformat-63.dll      FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+avutil-61.dll        FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+swresample-7.dll     FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+swscale-10.dll       FFmpeg                   9.0.2    LGPL 2.1 ou posterior
+libmp3lame-0.dll     LAME                     4.0      LGPL, texto preservado
+                                                       é a versão 2
+libmpg123-0.dll      mpg123                   1.33.7   LGPL 2.1 ou posterior
+libogg-0.dll         libogg (Xiph.Org)        1.3.6    BSD de 3 cláusulas
+libvorbis-0.dll      libvorbis (Xiph.Org)     1.3.7    BSD de 3 cláusulas
+libvorbisenc-2.dll   libvorbis (Xiph.Org)     1.3.7    BSD de 3 cláusulas
+libopus-0.dll        Opus (Xiph.Org e         1.6.1    BSD de 3 cláusulas
+                     outros titulares)
+zlib1.dll            zlib                     1.3.2    licença zlib
+libgcc_s_seh-1.dll   runtime GCC (libgcc)     16.2.0   GPLv3 ou posterior com
+                                                       GCC Runtime Library
+                                                       Exception 3.1
+libwinpthread-1.dll  winpthreads (mingw-w64)  14.0.0   MIT e BSD de 3
+                                                       cláusulas
+
+Textos de licença por arquivo da tabela:
+
+    FFmpeg (9 arquivos)    licenses/ffmpeg-COPYING.LGPLv2.1,
+                           licenses/ffmpeg-LICENSE.md
+    libmp3lame-0.dll       licenses/lame-COPYING, licenses/lame-LICENSE
+    libmpg123-0.dll        licenses/mpg123-COPYING
+    libogg-0.dll           licenses/libogg-COPYING
+    libvorbis-0.dll        licenses/libvorbis-COPYING
+    libvorbisenc-2.dll     licenses/libvorbis-COPYING
+    libopus-0.dll          licenses/opus-COPYING
+    zlib1.dll              licenses/zlib-LICENSE
+    libgcc_s_seh-1.dll     licenses/libgcc-COPYING3,
+                           licenses/libgcc-COPYING.RUNTIME
+    libwinpthread-1.dll    licenses/libwinpthread-COPYING
+
+Cada texto deve ser lido integralmente. Os avisos de copyright, as condições e
+as exclusões de garantia de cada componente não são substituídos por este
+resumo.
+
+================================================================================
+3. FFMPEG
+================================================================================
+
+Projeto: https://ffmpeg.org/
 Copyright (c) 2000-2026 the FFmpeg developers.
 
-License: GNU Lesser General Public License, version 2.1 or later (LGPL v2.1+).
-The full license text is in licenses/ffmpeg-COPYING.LGPLv2.1, and FFmpeg's own
-license notes are in licenses/ffmpeg-LICENSE.md.
+Os nove arquivos FFmpeg (ffmpeg.exe, ffprobe.exe, avcodec-63.dll,
+avdevice-63.dll, avfilter-12.dll, avformat-63.dll, avutil-61.dll,
+swresample-7.dll, swscale-10.dll) são distribuídos sob a GNU Lesser General
+Public License, versão 2.1 ou, a critério do destinatário, qualquer versão
+posterior (LGPL 2.1+). O texto integral está em
+licenses/ffmpeg-COPYING.LGPLv2.1 e as notas de licença do projeto estão em
+licenses/ffmpeg-LICENSE.md.
 
-This build was configured without --enable-gpl and without --enable-version3.
-It links libmp3lame, libvorbis, libopus and zlib as separate shared libraries
-(listed below) and links the remaining FFmpeg libraries dynamically. No static
-copy of FFmpeg is embedded in the application executable.
+A compilação identificada por "ffmpeg -version" é a 9.0.2, feita com GCC 16.2.0.
+Ela foi configurada com --enable-shared e --disable-static, sem --enable-gpl e
+sem --enable-version3. As bibliotecas FFmpeg são carregadas como DLLs separadas,
+e nenhuma cópia estática de FFmpeg está ligada ao executável do aplicativo.
 
-This software is provided "as is", without warranty of any kind, express or
-implied, including but not limited to the warranties of merchantability,
-fitness for a particular purpose and noninfringement.
+Componentes externos ligados a esta compilação do FFmpeg: libmp3lame, libogg,
+libvorbis, libvorbisenc, libopus, libmpg123 e zlib, todos como bibliotecas
+compartilhadas listadas na seção 2.
 
-Independent JPEG Group notice:
+Aviso do Independent JPEG Group:
 
     This software is based in part on the work of the Independent JPEG Group.
 
-The FFmpeg source tree distributed with this release contains the files
-derived from the Independent JPEG Group work: libavcodec/jrevdct.c,
-libavcodec/jfdctfst.c and libavcodec/jfdctint_template.c. Those files carry
-their own copyright notices and conditions, which are preserved unmodified in
-the corresponding source code.
+A árvore de código-fonte do FFmpeg distribuída com esta versão contém os
+arquivos derivados do trabalho do Independent JPEG Group:
+libavcodec/jrevdct.c, libavcodec/jfdctfst.c e libavcodec/jfdctint_template.c.
+Esses arquivos mantêm seus próprios avisos de copyright e condições, preservados
+sem alteração no código-fonte correspondente.
+
+Este software é fornecido "no estado em que se encontra", sem garantia de
+qualquer tipo, expressa ou implícita, incluindo, mas não se limitando a,
+garantias de comercialização, adequação a uma finalidade específica e ausência
+de violação de direitos de terceiros.
 
 ================================================================================
-2. How to obtain the corresponding source code
+4. COMPONENTES LGPL ADICIONAIS: LAME E MPG123
 ================================================================================
 
-The complete corresponding source code for the LGPL components distributed with
-this release, together with the build scripts, configuration and patches used to
-produce these binaries, is published as a separate archive on the same release
-page:
+libmp3lame-0.dll
+Projeto: LAME, https://lame.sourceforge.io/
+Versão 4.0, pacote MSYS2 4.0-1.
 
-    https://github.com/lucasgattas/Forma-Audio-Converter/releases/tag/v0.1.0
+Os textos preservados em licenses/lame-COPYING (GNU Library General Public
+License, versão 2) e licenses/lame-LICENSE (notas do projeto sobre uso
+comercial, atribuição e envio de alterações) acompanham este arquivo. O texto
+de COPYING preservado é a versão 2 da licença, e não a versão 2.1. A versão
+aplicável a cada arquivo e a eventuais alterações do pacote exige conferência no
+código-fonte correspondente; este aviso não afirma qual versão incide sobre cada
+parte.
 
-Look for the file named:
+Atribuição pedida pelo projeto LAME: este produto usa a biblioteca LAME. Site do
+projeto: https://lame.sourceforge.io/
 
-    forma-0.1.0-corresponding-sources.tar.zst
+libmpg123-0.dll
+Projeto: mpg123, https://www.mpg123.com/
+Versão 1.33.7, pacote MSYS2 1.33.7-1.
 
-That archive contains:
+Distribuído sob LGPL 2.1 ou posterior, conforme o texto preservado em
+licenses/mpg123-COPYING, que reproduz a LGPL 2.1 e as observações do projeto.
 
-    ffmpeg-2a571b606854520cf89804d8030c8b328e621689.tar.gz  FFmpeg source
-    msys2 source packages (PKGBUILD, upstream tarballs and patches) for
-        libmp3lame, mpg123, libogg, libvorbis, libopus, zlib, winpthreads
-    mingw-w64 GCC and CRT source packages (runtime libraries)
-    build.sh, config.log excerpt, package-and-test.sh and the build recipe
-        used for the FFmpeg binaries in this release
-    the license texts reproduced in the licenses/ folder below
-
-The archive is provided at no charge and remains available for at least three
-years from the date of this release, or for as long as this release is offered,
-whichever is longer.
-
-================================================================================
-3. Replacing the FFmpeg libraries
-================================================================================
-
-Because the FFmpeg libraries are distributed as separate dynamic-link libraries
-(.dll files) in the "local-ffmpeg" folder, you may replace any of them with a
-modified, ABI-compatible version of your own build, provided the file names stay
-the same. The application loads these libraries at run time and does not verify
-or restrict them. Rebuilding the libraries from the source archive above, with
-your own modifications, and placing the resulting .dll files in that folder is
-sufficient to run the application with your modified version.
+Ambos os arquivos são bibliotecas compartilhadas independentes. As condições de
+substituição e relink da seção 8 se aplicam a eles.
 
 ================================================================================
-4. Other bundled libraries
+5. COMPONENTES COM LICENÇA PERMISSIVA
 ================================================================================
 
-libmp3lame (LAME 4.0)          LGPL v2 / LGPL v2.1+   licenses/lame-COPYING,
-                               see also licenses/lame-LICENSE
-mpg123 1.33.7                  LGPL v2.1+             licenses/mpg123-COPYING
-libogg 1.3.6                   BSD-style (Xiph.Org)   licenses/libogg-COPYING
-libvorbis 1.3.7                BSD-style (Xiph.Org)   licenses/libvorbis-COPYING
-libopus 1.6.1                  BSD-style, with patent
-                               statement references    licenses/opus-COPYING
-zlib 1.3.2                     zlib License           licenses/zlib-LICENSE
-winpthreads 14.0.0             MIT (mingw-w64) and
-                               BSD (Lockless Inc.)    licenses/libwinpthread-COPYING
-libgcc (GCC 16.2.0 runtime)    GPL v3 with GCC Runtime
-                               Library Exception 3.1  licenses/libgcc-COPYING3,
-                                                      licenses/libgcc-COPYING.RUNTIME
-MinGW-w64 C runtime (static)   permissive notices     licenses/crt-COPYING,
-                                                      licenses/crt-COPYING.MinGW-w64.txt,
-                                                      licenses/crt-COPYING.MinGW-w64-runtime.txt,
-                                                      licenses/crt-COPYING3,
-                                                      licenses/crt-COPYING.RUNTIME
+libogg 1.3.6 (libogg-0.dll)
+Copyright (c) 2002 Xiph.org Foundation. Licença BSD de 3 cláusulas. Texto
+integral em licenses/libogg-COPYING. Projeto: https://xiph.org/ogg/
 
-Copies of the full license texts are installed in the "licenses" folder next to
-the application executable and are also reproduced in the source archive.
+libvorbis 1.3.7 (libvorbis-0.dll e libvorbisenc-2.dll)
+Copyright (c) 2002-2020 Xiph.org Foundation. Os dois arquivos vêm do mesmo
+pacote libvorbis 1.3.7-3 e são cobertos pelo mesmo texto,
+licenses/libvorbis-COPYING, com condições BSD de 3 cláusulas. Os metadados do
+pacote MSYS2 registram a licença como "custom"; o texto preservado é o do
+projeto. Projeto: https://xiph.org/vorbis/
 
-Naming any project above does not imply endorsement of this application by that
-project or by its copyright holders.
+libopus 1.6.1 (libopus-0.dll)
+Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy
+B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo,
+Mozilla e Amazon. Condições BSD de 3 cláusulas, com proibição de uso dos nomes
+dos titulares para endosso, em licenses/opus-COPYING. O texto faz referência a
+declarações de patentes; este aviso não concede nem afirma licença de patentes
+para a distribuição ou para os codecs. Projeto: https://opus-codec.org/
+
+zlib 1.3.2 (zlib1.dll)
+Copyright (c) 1995-2026 Jean-loup Gailly e Mark Adler. Licença zlib, texto
+integral em licenses/zlib-LICENSE. O texto pede que versões alteradas não sejam
+apresentadas como a versão original. Projeto: https://zlib.net/
+
+winpthreads 14.0.0 (libwinpthread-1.dll)
+Copyright (c) 2011 mingw-w64 project. O texto em
+licenses/libwinpthread-COPYING inclui a permissão MIT do projeto mingw-w64 e o
+aviso BSD de 3 cláusulas da Lockless Inc. Projeto: https://www.mingw-w64.org/
+
+As condições BSD e MIT exigem a reprodução do aviso de copyright, da lista de
+condições e da exclusão de garantia na documentação e nos demais materiais
+fornecidos com a distribuição binária. Os textos integrais na pasta "licenses"
+cumprem essa reprodução.
 
 ================================================================================
-5. Notices about accuracy
+6. RUNTIME GCC: LIBGCC_S_SEH-1.DLL
 ================================================================================
 
-This notice lists the components that the build records show as included. It is
-a good-faith inventory prepared from the build configuration, the linked
-libraries and the file inventory of the distributed package. If you believe a
-component or notice is missing or inaccurate, please open an issue at
-https://github.com/lucasgattas/Forma-Audio-Converter/issues and it will be
-corrected in a follow-up release.
+libgcc_s_seh-1.dll vem do runtime do GCC 16.2.0 (pacote libgcc 16.2.0-6 da
+toolchain mingw-w64). Ele é distribuído sob a GNU General Public License,
+versão 3 ou posterior, com a GCC Runtime Library Exception, versão 3.1.
+
+Textos preservados:
+
+    licenses/libgcc-COPYING3         texto integral da GPLv3
+    licenses/libgcc-COPYING.RUNTIME  texto integral da exceção de runtime 3.1
+
+A exceção de runtime permite distribuir programas gerados com o GCC e partes do
+runtime que o GCC incorpora, nas condições descritas no próprio texto. Este
+aviso não afirma que a exceção cubra todo o código do pacote GCC nem que ela se
+aplique a cada arquivo incorporado. O escopo por arquivo depende do código-fonte
+correspondente e do texto integral da exceção.
+
+================================================================================
+7. CRT DO MINGW-W64
+================================================================================
+
+A compilação usa a biblioteca de runtime C do mingw-w64 (CRT). Partes da CRT
+podem estar ligadas estaticamente nos executáveis e nas DLLs distribuídos.
+
+Textos preservados:
+
+    licenses/crt-COPYING                       Zope Public License 2.1, com
+                                               partes marcadas como domínio
+                                               público, BSD ou LGPL
+    licenses/crt-COPYING.MinGW-w64.txt         avisos do projeto mingw-w64
+    licenses/crt-COPYING.MinGW-w64-runtime.txt avisos do runtime mingw-w64
+    licenses/crt-COPYING3                      GPLv3, quando aplicável
+    licenses/crt-COPYING.RUNTIME               exceção de runtime, quando
+                                               aplicável
+
+Copyright (c) 2009-2013 by the mingw-w64 project. A Zope Public License 2.1
+exige a preservação do aviso de copyright, da lista de condições e da exclusão
+de garantia na documentação e nos materiais da distribuição binária.
+
+Este aviso não apresenta um mapeamento objeto por objeto do conteúdo estático da
+CRT. O texto integral dos avisos acima acompanha o produto, e o código-fonte
+correspondente inclui os pacotes de origem do GCC e da CRT usados na compilação.
+
+================================================================================
+8. SUBSTITUIÇÃO E RELINK DAS BIBLIOTECAS LGPL
+================================================================================
+
+As bibliotecas sob LGPL distribuídas com este produto (os nove arquivos FFmpeg,
+libmp3lame-0.dll e libmpg123-0.dll) são bibliotecas compartilhadas, gravadas como
+arquivos .dll separados na pasta "local-ffmpeg". O aplicativo não liga essas
+bibliotecas estaticamente, não exige assinatura digital delas e não verifica seu
+conteúdo por hash. Ao resolver o executável, ele apenas exige um arquivo regular
+com o nome esperado dentro da pasta "local-ffmpeg".
+
+Você pode substituir qualquer uma dessas DLLs por uma versão modificada,
+compilada por você, desde que mantenha o mesmo nome de arquivo e mantenha
+compatibilidade de ABI com a versão distribuída. O aplicativo carrega as DLLs em
+tempo de execução e funciona com a versão substituída. Recompilar as bibliotecas
+a partir do código-fonte correspondente, com as suas modificações, e copiar as
+DLLs resultantes para a pasta "local-ffmpeg" é o procedimento suficiente para
+usar a versão modificada.
+
+A alternativa adotada para a LGPL 2.1, seção 6, é o uso de um mecanismo de
+biblioteca compartilhada adequado: as bibliotecas ficam em arquivos separados,
+substituíveis pelo usuário, e o executável do aplicativo não incorpora cópia
+estática delas. Não é necessário relinkar o executável do aplicativo para trocar
+essas bibliotecas. O relink é necessário apenas se você quiser gerar seus
+próprios executáveis ffmpeg.exe ou ffprobe.exe a partir do código-fonte, e para
+isso a receita de compilação e a toolchain usada estão descritas e incluídas no
+arquivo de código-fonte correspondente citado na seção 9. Os executáveis
+distribuídos ligam a CRT do MinGW-w64 de forma estática; para reproduzi-los é
+preciso da mesma toolchain mingw-w64, cujo código-fonte também está no arquivo da
+seção 9.
+
+================================================================================
+9. COMO OBTER O CÓDIGO-FONTE CORRESPONDENTE
+================================================================================
+
+O código-fonte correspondente dos componentes distribuídos com esta versão,
+junto com as receitas de compilação, a configuração e os patches usados para
+produzir estes binários, é publicado como ativo da mesma página de release, sem
+custo:
+
+    https://github.com/lucasgattas/Forma-Audio-Converter/releases
+
+O nome do arquivo segue o padrão:
+
+    forma-<versão>-corresponding-sources.tar.gz
+
+A release 0.1.0 publicada contém o arquivo
+forma-0.1.0-corresponding-sources.tar.gz.
+
+O arquivo contém:
+
+    ffmpeg-2a571b606854520cf89804d8030c8b328e621689.tar.gz  código do FFmpeg
+    pacotes de código-fonte do MSYS2 (PKGBUILD, originais e patches) de
+        libmp3lame, mpg123, libogg, libvorbis, libopus, zlib e winpthreads
+    pacotes de código-fonte do GCC e da CRT do mingw-w64 (bibliotecas de
+        runtime)
+    os scripts e a receita de compilação usados para os binários desta versão
+    os textos de licença reproduzidos na pasta "licenses"
+
+O arquivo é oferecido sem custo e permanece disponível por pelo menos três anos
+a partir da data desta versão, ou enquanto esta versão for oferecida, o que for
+mais longo. A página de release também publica um arquivo SHA256SUMS.txt com os
+hashes dos ativos.
+
+Se o arquivo de código-fonte correspondente à versão instalada não estiver
+disponível nessa página, isso é uma falha desta oferta: relate pelo endereço da
+seção 11 e o arquivo será publicado.
+
+================================================================================
+10. GARANTIAS E LIMITAÇÃO
+================================================================================
+
+Os componentes de terceiros são fornecidos "no estado em que se encontram", sem
+garantia de qualquer tipo, expressa ou implícita, incluindo garantias de
+comercialização, adequação a uma finalidade específica e ausência de violação de
+direitos de terceiros. Os textos integrais de cada licença, na pasta "licenses",
+prevalecem sobre este resumo e definem os direitos e as obrigações aplicáveis.
+
+Citar um projeto ou titular neste arquivo não implica endosso deste aplicativo
+por esse projeto ou por seus titulares.
+
+Alguns componentes mencionam patentes em seus textos de licença. Este arquivo
+não concede licença de patentes e não afirma que a distribuição esteja livre de
+patentes de terceiros.
+
+================================================================================
+11. OMISSÕES E CONTATO
+================================================================================
+
+Este aviso é um inventário de boa-fé preparado a partir da configuração de
+compilação, das bibliotecas ligadas e do inventário de arquivos da distribuição.
+Ele não é um parecer jurídico e não declara que o produto esteja livre de
+violação de direitos de terceiros.
+
+Se você acreditar que um componente ou aviso está ausente ou incorreto, abra uma
+issue em:
+
+    https://github.com/lucasgattas/Forma-Audio-Converter/issues
+
+A correção será feita em uma versão seguinte.
