@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
+import { captureState, defaultStorage, readStoredState, saveState, type FormatMemory } from './persistence';
+import { Waveform, formatClock } from './Waveform';
 import './queue.css';
 import { readLanguage, translate, type Language } from './languages';
 
@@ -121,7 +123,7 @@ export const qualityProfiles = [
   { bitrate: 320, en: 'Maximum', pt: 'Máximo' },
 ] as const;
 
-const sampleRates = [22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000];
+export const sampleRates = [22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000];
 
 export function inputPathKey(path: string) {
   const plain = path.replace(/^\\\\\?\\UNC\\/i, '\\\\').replace(/^\\\\\?\\/, '');
@@ -214,8 +216,18 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     plus: <path d="M12 5v14M5 12h14" />, folder: <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" />,
     arrow: <path d="M4 12h15m-5-5 5 5-5 5" />, audio: <><path d="M4 10v4m4-7v10m4-14v18m4-14v10m4-7v4" /></>,
     check: <path d="m5 12 4 4L19 6" />, close: <path d="m6 6 12 12M18 6 6 18" />,
+    play: <path d="M9 5.5v13l10-6.5z" fill="currentColor" strokeWidth="1.2" />, pause: <><path d="M9.5 5.5v13" /><path d="M14.5 5.5v13" /></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
+
+// One reusable, app-styled switch: native input kept for semantics/a11y, custom track+thumb for the palette.
+function Toggle({ id, checked, disabled, onChange, label }: { id: string; checked: boolean; disabled?: boolean; onChange: (value: boolean) => void; label: ReactNode }) {
+  return <label className="toggle" htmlFor={id}>
+    <input id={id} type="checkbox" checked={checked} disabled={disabled} onChange={event => onChange(event.target.checked)} />
+    <span className="toggle-track" aria-hidden="true"><span className="toggle-thumb" /></span>
+    <span className="toggle-label">{label}</span>
+  </label>;
 }
 
 export function displayDestination(path: string) {
@@ -236,17 +248,167 @@ export default function App() {
   const [language, setLanguage] = useState<Language>(() => { try { return readLanguage(localStorage.getItem('forma-language')); } catch { return 'en'; } });
   const t = (pt: string) => language === 'en' ? (translations[pt] ?? translate(language, pt)) : translate(language, pt);
   useEffect(() => { document.documentElement.lang = language; try { localStorage.setItem('forma-language', language); } catch { /* Storage may be unavailable. */ } }, [language]);
-  const [items, setItems] = useState<Item[]>([]);
+  const storage = useRef(defaultStorage());
+  const [restored] = useState(() => readStoredState(storage.current, { formats: formats.map(entry => entry.id), sampleRates }));
+  const [items, setItems] = useState<Item[]>(() => restored.queue.map(entry => ({ ...entry, status: 'pending' as const, progress: null, outputPath: null, error: null })));
+  /** Detalhes técnicos da faixa, na mesma linha do nome, para qualquer quantidade de arquivos. */
+  const trackMeta = (info: Info | null | undefined) => {
+    if (!info) return '';
+    const parts: string[] = [];
+    if (info.duration != null) parts.push(describeDuration(info.duration));
+    if (info.sampleRate) parts.push(`${(info.sampleRate / 1000).toFixed(1)} kHz`);
+    if (info.channels === 2) parts.push(t('Estéreo'));
+    else if (info.channels === 1) parts.push('Mono');
+    else if (info.channels) parts.push(`${info.channels} ${t('canais')}`);
+    return parts.join(' · ');
+  };
+
   const info = items.length === 1 ? items[0].info : null;
 
-  const [dir, setDir] = useState('');
-  const [format, setFormat] = useState<Format>('mp3');
-  const [bitrate, setBitrate] = useState(320);
-  const [sampleRate, setSampleRate] = useState<number | null>(null);
-  const [channels, setChannels] = useState<number | null>(null);
-  const [wavBitDepth, setWavBitDepth] = useState<16 | 24>(16);
-  const [allowWavWithoutCover, setAllowWavWithoutCover] = useState(false);
-  const [openAfterBatch, setOpenAfterBatch] = useState(false);
+  const [dir, setDir] = useState(restored.dir);
+  const [format, setFormat] = useState<Format>(restored.format as Format);
+  const [bitrate, setBitrate] = useState(restored.active.bitrate);
+  const [sampleRate, setSampleRate] = useState<number | null>(restored.active.sampleRate);
+  const [channels, setChannels] = useState<number | null>(restored.active.channels);
+  const [wavBitDepth, setWavBitDepth] = useState<16 | 24>(restored.active.wavBitDepth);
+  const [allowWavWithoutCover, setAllowWavWithoutCover] = useState(restored.allowWavWithoutCover);
+  const [openAfterBatch, setOpenAfterBatch] = useState(restored.openFolder);
+
+  // Cada formato lembra os próprios ajustes: trocar de formato devolve o que já estava escolhido nele.
+  const memory = useRef<Record<string, FormatMemory>>({ ...restored.perFormat });
+  const previousFormat = useRef<Format>(restored.format as Format);
+  useEffect(() => {
+    const previous = previousFormat.current;
+    if (previous === format) return;
+    previousFormat.current = format;
+    memory.current[previous] = { bitrate, sampleRate, channels, wavBitDepth };
+    const saved = memory.current[format];
+    if (!saved) return;
+    setBitrate(saved.bitrate); setSampleRate(saved.sampleRate); setChannels(saved.channels); setWavBitDepth(saved.wavBitDepth);
+  }, [format, bitrate, sampleRate, channels, wavBitDepth]);
+
+  // Grava com atraso curto para não escrever a cada tecla, e nunca durante a conversão.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const state = captureState({
+        format, dir, openFolder: openAfterBatch, allowWavWithoutCover,
+        memory: memory.current,
+        active: { bitrate, sampleRate, channels, wavBitDepth },
+        queue: items.map(item => ({ path: item.path, info: item.info })),
+        formats: formats.map(entry => entry.id),
+        sampleRates,
+      });
+      saveState(storage.current, state);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [format, dir, openAfterBatch, allowWavWithoutCover, bitrate, sampleRate, channels, wavBitDepth, items]);
+
+  // Mini player: o backend só entrega à interface os arquivos que estão na fila (allowlist).
+  const player = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [playerError, setPlayerError] = useState('');
+  const [peaks, setPeaks] = useState<Record<string, number[]>>({});
+  const [position, setPosition] = useState(0);
+  const peaksRef = useRef(peaks);
+  peaksRef.current = peaks;
+  const peaksInFlight = useRef(new Set<string>());
+
+  useEffect(() => {
+    const element = new Audio();
+    element.preload = 'metadata';
+    const stop = () => setPlaying(null);
+    const sync = () => setPosition(element.currentTime);
+    element.addEventListener('ended', stop);
+    element.addEventListener('error', stop);
+    element.addEventListener('timeupdate', sync);
+    element.addEventListener('seeked', sync);
+    player.current = element;
+    return () => {
+      element.pause();
+      element.removeEventListener('ended', stop);
+      element.removeEventListener('error', stop);
+      element.removeEventListener('timeupdate', sync);
+      element.removeEventListener('seeked', sync);
+      player.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pending = items.filter(item => Boolean(item.info) && !(inputPathKey(item.path) in peaksRef.current) && !peaksInFlight.current.has(inputPathKey(item.path)));
+    if (pending.length === 0) return;
+    void (async () => {
+      for (const item of pending) {
+        const key = inputPathKey(item.path);
+        peaksInFlight.current.add(key);
+        try {
+          const values = await invoke<number[]>('audio_peaks', { path: item.path, buckets: 180 });
+          if (!cancelled && Array.isArray(values) && values.length > 0) {
+            setPeaks(previous => ({ ...previous, [key]: values }));
+          }
+        } catch {
+          // Sem onda o item continua utilizável; só não desenha o envelope.
+        } finally {
+          peaksInFlight.current.delete(key);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [items]);
+
+  useEffect(() => {
+    const paths = items.map(item => item.path);
+    setPlayerError('');
+    const timer = setTimeout(() => { invoke('set_playable_files', { paths }).catch(() => undefined); }, 200);
+    return () => clearTimeout(timer);
+  }, [items]);
+
+  async function togglePlay(item: Item, startAt = 0) {
+    const element = player.current;
+    if (!element) return;
+    const key = inputPathKey(item.path);
+    setPlayerError('');
+    if (playing === key) {
+      if (startAt > 0) {
+        element.currentTime = startAt;
+        setPosition(startAt);
+        return;
+      }
+      element.pause();
+      setPlaying(null);
+      return;
+    }
+    element.src = `http://forma-media.localhost/?p=${encodeURIComponent(item.path)}`;
+    try {
+      await element.play();
+      if (startAt > 0) {
+        element.currentTime = startAt;
+        setPosition(startAt);
+      } else {
+        setPosition(0);
+      }
+      setPlaying(key);
+    } catch {
+      setPlaying(null);
+      setPlayerError(t('Não foi possível reproduzir este arquivo.'));
+    }
+  }
+
+  /** Clicar na onda toca a partir daquele ponto; sem duração confiável, ignora. */
+  function seek(item: Item, ratio: number) {
+    const duration = item.info?.duration ?? 0;
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    const target = Math.max(0, Math.min(duration - 0.05, ratio * duration));
+    const key = inputPathKey(item.path);
+    if (playing === key) {
+      const element = player.current;
+      if (!element) return;
+      element.currentTime = target;
+      setPosition(target);
+      return;
+    }
+    void togglePlay(item, target);
+  }
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -363,6 +525,7 @@ export default function App() {
   }
 
   async function convert() {
+    setPlayerError('');
     if (!toolsReady || !items.length || !dir || running || !listenerReady || runner.current || locked.current) return;
     const indices = retryIndices(items);
     if (!indices.length) return;
@@ -393,27 +556,32 @@ export default function App() {
   const total = summarizeEstimates(estimates);
 
   return <div className="shell">
-    <header className="topbar"><div className="brand"><div className="brand-mark"><Icon name="audio" size={21} /></div><div><strong>forma<span>.</span></strong><small>{t('CONVERSOR DE ÁUDIO')}</small></div></div><div className="header-right"><span className="status-dot" /> {t('PROCESSAMENTO LOCAL')} <span className="header-divider" /> <span className="version">{t('VERSÃO BETA')}</span></div><label className="language-selector"><span className="sr-only">{t('Idioma')}</span><select aria-label={t('Idioma')} value={language} onChange={event => setLanguage(readLanguage(event.target.value))}><option value="en">English</option><option value="pt-BR">Português (Brasil)</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></label></header>
+    <header className="topbar"><div className="brand"><div className="brand-mark"><Icon name="audio" size={21} /></div><div><strong>forma<span>.</span></strong><small>{t('CONVERSOR DE ÁUDIO')}</small></div></div><div className="header-right"><span className="status-dot" /> {t('PROCESSAMENTO LOCAL')} <span className="header-divider" /> <span className="version">{t('VERSÃO BETA')} {__APP_VERSION__}</span></div><label className="language-selector"><span className="sr-only">{t('Idioma')}</span><select aria-label={t('Idioma')} value={language} onChange={event => setLanguage(readLanguage(event.target.value))}><option value="en">English</option><option value="pt-BR">Português (Brasil)</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></label></header>
     <main>
-      <div className="intro"><div><div className="eyebrow"><span className="line" /> {t("SEU SOM, NA FORMA CERTA")}</div><h1>{t("Áudio, sem ")}<em>{t("complicação.")}</em></h1><p>{t("Converta seus arquivos com precisão, no seu computador.")}</p></div><div className="intro-index"><span>01 / 01</span><small>{t("CONVERSOR DE ÁUDIO")}</small></div></div>
+      <div className={`intro ${items.length ? 'is-compact' : ''}`}><div><div className="eyebrow"><span className="line" /> {t("SEU SOM, NA FORMA CERTA")}</div><h1>{t("Áudio, sem ")}<em>{t("complicação.")}</em></h1>{!items.length && <p>{t("Converta seus arquivos com precisão, no seu computador.")}</p>}</div><div className="intro-index"><span>01 / 01</span><small>{t("CONVERSOR DE ÁUDIO")}</small></div></div>
       <section className="workspace" aria-label={t("Conversor de áudio")}>
-        <div className="left-panel"><div className="section-heading"><div><span className="step">01</span><h2>{t("Seus arquivos")}</h2></div><span className="micro">{t("ORIGEM")}</span></div>
+        <div className="panel panel-files"><div className="section-heading"><div><span className="step">01</span><h2>{t("Seus arquivos")}</h2></div><span className="micro">{t("ORIGEM")}</span></div>
           <button ref={card} className={`file-card ${items.length ? 'has-file' : ''} ${dragging ? 'dragging' : ''}`} onClick={chooseInput} disabled={running || adding || !toolsReady}>
             {items.length ? <><div className="file-icon"><Icon name="audio" size={26} /></div><div className="file-details"><strong>{items.length} {items.length === 1 ? t("arquivo selecionado") : t("arquivos selecionados")}</strong><span>{t("Arraste ou selecione mais arquivos")}</span></div><span className="change-file">{t("ADICIONAR")} <Icon name="arrow" size={16} /></span></> : <><span className="upload-icon"><Icon name="plus" size={24} /></span><strong>{t("Selecione seus áudios")}</strong><span>{t("Arraste ou escolha um ou mais arquivos de áudio")}</span><span className="file-pill">{t("ÁUDIO")} <span> / </span> {t("ARQUIVOS")}</span></>}
           </button>
-          <button type="button" className="queue-clear" onClick={chooseInputFolder} disabled={running || adding || !toolsReady}><Icon name="folder" size={16} /> {t('Adicionar pasta')}</button>
-          <p className="estimate-note">{t('Subpastas não são incluídas; links simbólicos são ignorados.')}</p>
-          {items.length === 1 && info && <div className="batch-summary">{info.duration == null ? t('Duração desconhecida') : describeDuration(info.duration)} · {info.sampleRate ? `${(info.sampleRate / 1000).toFixed(1)} kHz` : t("Taxa desconhecida")} · {info.channels === 2 ? t("Estéreo") : info.channels === 1 ? 'Mono' : `${info.channels ?? '?'} ${t('canais')}`}</div>}
-          {items.length > 0 && <div className="batch-list" aria-label={t("Arquivos selecionados")} aria-live="polite"><div className="batch-summary">{completed} {t('de')} {items.length} {t('processados')} <button ref={clearButton} className="queue-clear" disabled={running || adding} onClick={() => setConfirmClear(true)}>{t("Limpar lista")}</button></div>{items.map((item, index) => {
+          <span className="hint-wrap"><button type="button" className="add-folder" onClick={chooseInputFolder} aria-describedby="folder-scope" disabled={running || adding || !toolsReady}><Icon name="folder" size={16} /> {t('Adicionar pasta')}</button><span className="hint-card" id="folder-scope" role="tooltip">{t('Subpastas não são incluídas; links simbólicos são ignorados.')}</span></span>
+          {items.length > 0 && <div className="batch-list" aria-label={t("Arquivos selecionados")} aria-live="polite"><div className="batch-summary"><span>{completed} {t('de')} {items.length} {t('processados')}</span> <button ref={clearButton} className="queue-clear" disabled={running || adding} onClick={() => setConfirmClear(true)}><Icon name="close" size={12} /> {t("Limpar lista")}</button></div>{items.map((item, index) => {
             const percent = item.progress == null ? null : Math.max(0, Math.min(100, Math.round(item.progress * 100)));
             const label = item.status === 'pending' ? t("Aguardando") : item.status === 'running' ? `${t('Convertendo')}${percent == null ? '' : ` · ${percent}%`}` : item.status === 'completed' ? t("Concluído") : item.status === 'cancelled' ? t("Cancelado") : t("Erro");
-            return <div className="batch-item" key={`${item.path}-${index}`}><strong title={item.path}>{filename(item.path)}</strong><span>{label}</span><small className="estimate-item">{t("Tamanho estimado")}: {estimates[index] === null ? t("Indisponível") : `≈ ${formatBytes(estimates[index]!, language)}`}</small><button className="queue-remove" aria-label={`${t('Remover')} ${filename(item.path)} ${t('da lista')}`} disabled={running || adding} onClick={() => { if (!locked.current) setItems(previous => previous.filter((_, i) => i !== index)); }}>{t("Remover")}</button>{item.status === 'running' && <div className={`progress-track ${percent == null ? 'indeterminate' : ''}`}><div style={percent == null ? undefined : { width: `${percent}%` }} /></div>}{item.error && <small className="batch-error">{t(item.error)}</small>}{item.outputPath && <small title={item.outputPath}>{item.outputPath}</small>}</div>;
+            return <div className="batch-item" key={`${item.path}-${index}`}><div className="batch-item-head"><button type="button" className="play-button" aria-label={`${playing === inputPathKey(item.path) ? t('Pausar') : t('Reproduzir')} ${filename(item.path)}`} onClick={() => { void togglePlay(item); }}><Icon name={playing === inputPathKey(item.path) ? 'pause' : 'play'} size={12} /></button><strong title={item.path}>{filename(item.path)}</strong>{trackMeta(item.info) && <small className="track-meta">{trackMeta(item.info)}</small>}<span>{label}</span></div><small className="estimate-item">{t("Tamanho estimado")}: {estimates[index] === null ? t("Indisponível") : `≈ ${formatBytes(estimates[index]!, language)}`}</small><div className="batch-item-actions"><button className="queue-remove" aria-label={`${t('Remover')} ${filename(item.path)} ${t('da lista')}`} disabled={running || adding} onClick={() => { if (!locked.current) setItems(previous => previous.filter((_, i) => i !== index)); }}><Icon name="close" size={13} /> {t("Remover")}</button><Waveform peaks={peaks[inputPathKey(item.path)] ?? null} playing={playing === inputPathKey(item.path)} progress={playing === inputPathKey(item.path) && (item.info?.duration ?? 0) > 0 ? position / (item.info?.duration ?? 1) : 0} label={`${t('Posição em')} ${filename(item.path)}`} onSeek={ratio => seek(item, ratio)} /><small className="wave-clock" aria-hidden={playing !== inputPathKey(item.path)}>{(playing === inputPathKey(item.path) && (item.info?.duration ?? 0) > 0) ? `${formatClock(position)} / ${formatClock(item.info!.duration!)}` : ''}</small></div>{item.status === 'running' && <div className={`progress-track ${percent == null ? 'indeterminate' : ''}`}><div style={percent == null ? undefined : { width: `${percent}%` }} /></div>}{item.error && <small className="batch-error">{t(item.error)}</small>}{item.outputPath && <small title={item.outputPath}>{item.outputPath}</small>}</div>;
           })}{items.length > 1 && <div className="estimate-total">{t(total.unknown && total.bytes !== null ? 'Subtotal estimado' : 'Total estimado')}: {total.bytes === null ? t('Indisponível') : `≈ ${formatBytes(total.bytes, language)}`}{total.unknown > 0 && ` · ${total.unknown} ${t('sem estimativa')}`}</div>}<p className="estimate-note">{t('Estimativas aproximadas; o tamanho final pode variar com o codificador e o overhead do arquivo.')}</p></div>}
+          {playerError && <div className="alert alert-player" role="alert">{playerError}</div>}
           <div className="privacy"><span className="privacy-icon">✳</span><span><strong>{t("Seu áudio continua sendo seu.")}</strong><br />{t("O processamento acontece localmente, sem envio para a nuvem.")}</span></div>
         </div>
-        <div className="right-panel"><div className="section-heading"><div><span className="step">02</span><h2>{t("Escolha a saída")}</h2></div><span className="micro">{t("CONFIGURAÇÃO")}</span></div>
+        <div className="panel-settings">
+        <div className="panel panel-format"><div className="section-heading"><div><span className="step">02</span><h2>{t("Escolha a saída")}</h2></div><span className="micro">{t("CONFIGURAÇÃO")}</span></div>
+          <div className="panel-scroll">
           <div className="label-row"><label>{t("FORMATO")}</label><span>{t("ESCOLHA UM")}</span></div><div className="formats" role="group" aria-label={t("Formato de saída")}>{formats.map(({ id, description }) => <button key={id} onClick={() => setFormat(id)} disabled={!!running} aria-pressed={format === id} className={`format ${format === id ? 'selected' : ''}`}><span className="format-top"><strong>{id.toUpperCase()}</strong><span className="radio"><span /></span></span><small>{t(description)}</small></button>)}</div>
           <div className="settings"><div className="setting-head"><span>{t("QUALIDADE")}</span><span className="accent">{format !== 'flac' && format !== 'wav' ? `${bitrate} KBPS${qualityProfiles.some(profile => profile.bitrate === bitrate) ? '' : ` · ${t('Personalizado')}`}` : t("SEM PERDAS")}</span></div>{format !== 'flac' && format !== 'wav' ? <><div className="quality-profiles" role="group" aria-label={t("Perfil de qualidade")}>{qualityProfiles.map(profile => <button type="button" key={profile.bitrate} disabled={running} aria-pressed={bitrate === profile.bitrate} onClick={() => setBitrate(profile.bitrate)}><span>{t(profile.pt)}</span><small>{profile.bitrate} kbps</small></button>)}</div><label htmlFor="bitrate" className="sr-only">{t("Taxa de bits")}</label><input id="bitrate" type="range" min="128" max="320" step="1" value={bitrate} onChange={e => setBitrate(Number(e.target.value))} disabled={!!running} /><div className="range-labels"><span>{t("MENOR ARQUIVO")}</span><span>{t("MAIOR QUALIDADE")}</span></div></> : <p className="format-note">{t("A conversão sem perdas não recupera perdas presentes no áudio de origem. Alterar taxa ou canais pode modificar o áudio.")}</p>}</div>
+          </div>
+        </div>
+        <div className="panel panel-output"><div className="section-heading"><div><span className="step">03</span><h2>{t('Ajustes e destino')}</h2></div></div>
+          <div className="panel-scroll">
           <div className="advanced-settings">
             <div className="setting-head"><span>{t("OPÇÕES AVANÇADAS")}</span></div>
             <div className="advanced-grid">
@@ -421,9 +589,9 @@ export default function App() {
               <label htmlFor="channels">{t("Canais")}<select id="channels" value={channels ?? ''} onChange={e => setChannels(e.target.value ? Number(e.target.value) : null)} disabled={running}><option value="">{t("Manter da origem")}</option><option value="1">Mono</option><option value="2">{t("Estéreo")}</option></select></label>
               {format === 'wav' && <label htmlFor="wav-depth">{t("Profundidade PCM")}<select id="wav-depth" value={wavBitDepth} onChange={e => setWavBitDepth(Number(e.target.value) as 16 | 24)} disabled={running}><option value="16">16 bits</option><option value="24">24 bits</option></select></label>}
             </div>
-            {format === 'wav' && <p className="format-note"><label><input type="checkbox" checked={allowWavWithoutCover} disabled={running} onChange={e => setAllowWavWithoutCover(e.target.checked)} /> {t('Permitir conversão WAV sem capa. A capa será omitida apenas dos arquivos convertidos; os originais não serão alterados.')}</label></p>}
+            {format === 'wav' && <div className="format-note"><Toggle id="wav-without-cover" checked={allowWavWithoutCover} disabled={running} onChange={setAllowWavWithoutCover} label={t('Permitir conversão WAV sem capa. A capa será omitida apenas dos arquivos convertidos; os originais não serão alterados.')} /></div>}
           </div>
-          <div className="destination"><div className="label-row"><label>{t("DESTINO")}</label><span>{t("ONDE SALVAR")}</span></div><button className="directory" onClick={chooseDirectory} disabled={!!running}><Icon name="folder" size={19} /><span title={displayDestination(dir)}>{dir ? displayDestination(dir) : t("Escolher pasta de destino")}</span><Icon name="arrow" size={17} /></button><button className="open-destination" onClick={openDestination} disabled={!dir} aria-label={t('Abrir pasta de destino')}>{t('Abrir pasta')}</button><p className="format-note"><label><input type="checkbox" checked={openAfterBatch} disabled={running} onChange={e => setOpenAfterBatch(e.target.checked)} /> {t('Abrir pasta após o lote')}</label></p></div>
+          <div className="destination"><div className="label-row"><label>{t("DESTINO")}</label><span>{t("ONDE SALVAR")}</span></div><button className="directory" onClick={chooseDirectory} disabled={!!running}><Icon name="folder" size={19} /><span title={displayDestination(dir)}>{dir ? displayDestination(dir) : t("Escolher pasta de destino")}</span><Icon name="arrow" size={17} /></button><div className="destination-actions"><button className="open-destination" onClick={openDestination} disabled={!dir} aria-label={t('Abrir pasta de destino')}><Icon name="folder" size={14} /> {t('Abrir pasta')}</button><Toggle id="open-after-batch" checked={openAfterBatch} disabled={running} onChange={setOpenAfterBatch} label={t('Abrir pasta após o lote')} /></div></div>
           {error && <div className="alert" role="alert">{error}</div>}
           {toolState === 'loading' && <div className="alert" role="status">{t('Verificando FFmpeg e FFprobe...')}</div>}
           {toolState !== 'loading' && !toolsReady && <div className="alert" role="alert">
@@ -434,7 +602,9 @@ export default function App() {
             </>}
             <button type="button" className="queue-clear" onClick={checkTools} disabled={running}>{t('Verificar novamente')}</button>
           </div>}
+          </div>
           <div className="actions">{running ? <button className="cancel" onClick={cancel} disabled={cancelling}><Icon name="close" size={16} /> {cancelling ? t("Cancelando lote...") : t("Cancelar lote")}</button> : <button className="convert" onClick={convert} disabled={!toolsReady || !items.length || !dir || !listenerReady || adding || retryIndices(items).length === 0}><span>{items.length > 0 && retryIndices(items).length === 0 ? t("Concluído") : t(items.length === 1 ? 'Converter áudio' : 'Converter áudios')}</span><Icon name="arrow" size={20} /></button>}</div>
+        </div>
         </div>
       </section><div className="bottom-line"><span>{t("CONVERSÃO LOCAL")} <b>✳</b> {t("SOM EM FOCO")}</span><span>MP3 · FLAC · WAV · M4A · OGG · OPUS</span></div>
     </main><footer><span>{t("PROJETADO PARA OUVIR MAIS.")}</span><span className="footer-credit"><img src="/brand/egregora-flower-512.webp" alt="" /> Egrégora Labs</span></footer>

@@ -27,7 +27,9 @@ test('formatos e parâmetros respeitam o contrato', () => {
 
 test('opções avançadas preservam origem e são usadas no lote', () => {
   for (const rate of [22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000]) assert.match(source, new RegExp(`\\b${rate}\\b`));
-  assert.match(source, /useState<number \| null>\(null\)/);
+  // A origem é o padrão de fábrica: só deixa de ser null quando o estado salvo de um formato já escolheu outra taxa.
+  assert.match(source, /useState<number \| null>\(restored\.active\.sampleRate\)/);
+  assert.match(readFileSync(new URL('../src/persistence.ts', import.meta.url), 'utf8'), /sampleRate: typeof raw\.sampleRate === 'number' && sampleRates\.includes\(raw\.sampleRate\) \? raw\.sampleRate : null/);
   assert.match(source, /start: inputPath => invoke<string>\('start_conversion',\s*\{[^}]*\.\.\.conversionOptions\(format, bitrate, sampleRate, channels, wavBitDepth\)/);
   assert.match(source, /não recupera/i);
 });

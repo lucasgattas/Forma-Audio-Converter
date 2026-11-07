@@ -1,12 +1,15 @@
 .file-card.dragging { outline: 2px solid currentColor; outline-offset: 3px; }
-.queue-clear, .queue-remove { cursor: pointer; background: transparent; border: 0; color: inherit; text-decoration: underline; font: inherit; }
-.queue-clear { float: right; }
+/* Queue actions are real buttons, not faint inline links. */
+.queue-clear, .queue-remove { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 11px; line-height: 1; min-height: 32px; padding: 0 12px; border: 1px solid #41453b; border-radius: 4px; background: #20221d; color: #dbe6cc; cursor: pointer; text-decoration: none; flex: none; }
+.queue-clear:hover:not(:disabled), .queue-remove:hover:not(:disabled) { border-color: #9cb984; color: #eef7e2; }
+.queue-remove { min-height: 30px; padding: 0 10px; color: #cfd8c4; }
+.queue-remove:hover:not(:disabled) { border-color: #a66761; color: #f3cdc6; }
 .queue-remove:disabled, .queue-clear:disabled { cursor: not-allowed; opacity: .5; }
 .queue-dialog { max-width: min(420px, 90vw); padding: 24px; border: 1px solid #858585; border-radius: 12px; background: #202020; color: #fff; }
 .queue-dialog::backdrop { background: rgba(0, 0, 0, .65); }
 .queue-dialog div { display: flex; justify-content: flex-end; gap: 12px; }
 .queue-dialog button { padding: 10px 16px; cursor: pointer; }
-.queue-dialog button:focus-visible, .queue-clear:focus-visible, .queue-remove:focus-visible { outline: 2px solid #d78862; outline-offset: 3px; }
-.estimate-item { grid-column: 1 / -1; }
+.queue-dialog button:focus-visible, .queue-clear:focus-visible, .queue-remove:focus-visible { outline: 2px solid #c8ed88; outline-offset: 3px; }
+.estimate-item { order: 2; }
 .estimate-total { margin-top: 10px; font-size: 13px; }
 .estimate-note { margin: 8px 0 0; font-size: 12px; line-height: 1.5; }

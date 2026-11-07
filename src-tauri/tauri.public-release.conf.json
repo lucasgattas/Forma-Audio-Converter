@@ -1,0 +1,80 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Forma Audio Converter",
+  "version": "0.1.2",
+  "identifier": "com.egregoralabs.forma",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Forma Audio Converter",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 650
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/icon.ico"
+    ],
+    "shortDescription": "Local batch audio converter",
+    "longDescription": "Converts audio files between MP3, FLAC, WAV, M4A, Ogg Vorbis and Opus entirely on your computer, preserving the originals.",
+    "copyright": "Copyright (c) 2026 Egrégora Labs",
+    "resources": {
+      "../local-ffmpeg-clean-candidate-20261106/bin/ffmpeg.exe": "local-ffmpeg/ffmpeg.exe",
+      "../local-ffmpeg-clean-candidate-20261106/bin/ffprobe.exe": "local-ffmpeg/ffprobe.exe",
+      "../local-ffmpeg-clean-candidate-20261106/bin/avcodec-63.dll": "local-ffmpeg/avcodec-63.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/avdevice-63.dll": "local-ffmpeg/avdevice-63.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/avfilter-12.dll": "local-ffmpeg/avfilter-12.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/avformat-63.dll": "local-ffmpeg/avformat-63.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/avutil-61.dll": "local-ffmpeg/avutil-61.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/swresample-7.dll": "local-ffmpeg/swresample-7.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/swscale-10.dll": "local-ffmpeg/swscale-10.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libmp3lame-0.dll": "local-ffmpeg/libmp3lame-0.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libmpg123-0.dll": "local-ffmpeg/libmpg123-0.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libogg-0.dll": "local-ffmpeg/libogg-0.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libvorbis-0.dll": "local-ffmpeg/libvorbis-0.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libvorbisenc-2.dll": "local-ffmpeg/libvorbisenc-2.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libopus-0.dll": "local-ffmpeg/libopus-0.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/zlib1.dll": "local-ffmpeg/zlib1.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libgcc_s_seh-1.dll": "local-ffmpeg/libgcc_s_seh-1.dll",
+      "../local-ffmpeg-clean-candidate-20261106/bin/libwinpthread-1.dll": "local-ffmpeg/libwinpthread-1.dll",
+      "../packaging/notices/THIRD-PARTY-NOTICES.txt": "THIRD-PARTY-NOTICES.txt",
+      "../packaging/notices/LICENSE": "LICENSE",
+      "../packaging/notices/licenses/crt-COPYING": "licenses/crt-COPYING",
+      "../packaging/notices/licenses/crt-COPYING.MinGW-w64-runtime.txt": "licenses/crt-COPYING.MinGW-w64-runtime.txt",
+      "../packaging/notices/licenses/crt-COPYING.MinGW-w64.txt": "licenses/crt-COPYING.MinGW-w64.txt",
+      "../packaging/notices/licenses/crt-COPYING.RUNTIME": "licenses/crt-COPYING.RUNTIME",
+      "../packaging/notices/licenses/crt-COPYING3": "licenses/crt-COPYING3",
+      "../packaging/notices/licenses/ffmpeg-COPYING.LGPLv2.1": "licenses/ffmpeg-COPYING.LGPLv2.1",
+      "../packaging/notices/licenses/ffmpeg-LICENSE.md": "licenses/ffmpeg-LICENSE.md",
+      "../packaging/notices/licenses/lame-COPYING": "licenses/lame-COPYING",
+      "../packaging/notices/licenses/lame-LICENSE": "licenses/lame-LICENSE",
+      "../packaging/notices/licenses/libgcc-COPYING.RUNTIME": "licenses/libgcc-COPYING.RUNTIME",
+      "../packaging/notices/licenses/libgcc-COPYING3": "licenses/libgcc-COPYING3",
+      "../packaging/notices/licenses/libogg-COPYING": "licenses/libogg-COPYING",
+      "../packaging/notices/licenses/libvorbis-COPYING": "licenses/libvorbis-COPYING",
+      "../packaging/notices/licenses/libwinpthread-COPYING": "licenses/libwinpthread-COPYING",
+      "../packaging/notices/licenses/mpg123-COPYING": "licenses/mpg123-COPYING",
+      "../packaging/notices/licenses/opus-COPYING": "licenses/opus-COPYING",
+      "../packaging/notices/licenses/zlib-LICENSE": "licenses/zlib-LICENSE"
+    },
+    "targets": [
+      "nsis"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "mainBinaryName": "Forma Audio Converter"
+}

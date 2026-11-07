@@ -1,11 +1,12 @@
 {
   "name": "audio-converter-poc",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "stage:release": "node scripts/stage-release-assets.mjs",
     "typecheck": "tsc --noEmit",
     "tauri": "tauri"
   },

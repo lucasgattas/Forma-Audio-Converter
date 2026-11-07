@@ -2,6 +2,8 @@
 
 #[allow(dead_code)]
 mod bundled_tools;
+mod media;
+mod waveform;
 mod tool_check;
 mod folder_scan_core;
 mod folder_selection;
@@ -112,7 +114,7 @@ fn local_tool(name: &str) -> Result<PathBuf, String> {
     bundled_tools::resolve_bundled(&dir, tool).map_err(str::to_string)
 }
 
-fn binary(name: &str) -> Result<Command, String> {
+pub(crate) fn binary(name: &str) -> Result<Command, String> {
     // The development binary deliberately uses PATH. A release needs an audited,
     // bundled FFmpeg and a separate licensing review before this guard is removed.
     #[cfg(feature = "local-installer-test")]
@@ -374,5 +376,6 @@ fn cancel_conversion(jobs: State<'_, Jobs>, job_id: String) -> Result<(), String
 }
 
 fn main() {
-    tauri::Builder::default().manage(Jobs::default()).manage(Destination::default()).plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_opener::init()).invoke_handler(tauri::generate_handler![check_tool_availability, probe_audio, start_conversion, cancel_conversion, choose_destination, open_destination, folder_selection::choose_input_folder]).run(tauri::generate_context!()).expect("error while running application");
+    tauri::Builder::default().manage(Jobs::default()).manage(Destination::default()).manage(media::Playable::default()).plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_opener::init()).register_asynchronous_uri_scheme_protocol("forma-media", |context, request, responder| media::handle(context.app_handle(), request, responder)).invoke_handler(tauri::generate_handler![check_tool_availability, probe_audio, start_conversion, cancel_conversion, choose_destination, open_destination, media::set_playable_files,
+            waveform::audio_peaks, folder_selection::choose_input_folder]).run(tauri::generate_context!()).expect("error while running application");
 }
