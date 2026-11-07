@@ -6,6 +6,8 @@ Forma Audio Converter is a small desktop app built with Tauri, Rust and React. I
 
 **Download the installer:** [latest release](https://github.com/lucasgattas/Forma-Audio-Converter/releases/latest)
 
+![Forma Audio Converter running on Windows 11, with the audio file queue on the left and the output format, quality and destination settings on the right](assets/screenshot.png)
+
 ## What it does
 
 - **Batch conversion.** Add any number of files, or an entire folder, and convert them in one run.
