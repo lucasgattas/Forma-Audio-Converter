@@ -1,0 +1,124 @@
+FORMA AUDIO CONVERTER 0.1.0
+THIRD-PARTY COMPONENTS, LICENSES AND SOURCE CODE AVAILABILITY
+
+This file accompanies the Forma Audio Converter application and describes the
+third-party software included with it. The application's own source code is
+licensed under the MIT License (see LICENSE). The components below are licensed
+under their own terms and are not covered by the MIT License.
+
+================================================================================
+1. FFmpeg 9.0.2
+================================================================================
+
+Included programs and libraries, installed in the "local-ffmpeg" folder next to
+the application executable:
+
+    ffmpeg.exe, ffprobe.exe, avcodec-63.dll, avdevice-63.dll, avfilter-12.dll,
+    avformat-63.dll, avutil-61.dll, swresample-7.dll, swscale-10.dll
+
+Project: https://ffmpeg.org/
+Copyright (c) 2000-2026 the FFmpeg developers.
+
+License: GNU Lesser General Public License, version 2.1 or later (LGPL v2.1+).
+The full license text is in licenses/ffmpeg-COPYING.LGPLv2.1, and FFmpeg's own
+license notes are in licenses/ffmpeg-LICENSE.md.
+
+This build was configured without --enable-gpl and without --enable-version3.
+It links libmp3lame, libvorbis, libopus and zlib as separate shared libraries
+(listed below) and links the remaining FFmpeg libraries dynamically. No static
+copy of FFmpeg is embedded in the application executable.
+
+This software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement.
+
+Independent JPEG Group notice:
+
+    This software is based in part on the work of the Independent JPEG Group.
+
+The FFmpeg source tree distributed with this release contains the files
+derived from the Independent JPEG Group work: libavcodec/jrevdct.c,
+libavcodec/jfdctfst.c and libavcodec/jfdctint_template.c. Those files carry
+their own copyright notices and conditions, which are preserved unmodified in
+the corresponding source code.
+
+================================================================================
+2. How to obtain the corresponding source code
+================================================================================
+
+The complete corresponding source code for the LGPL components distributed with
+this release, together with the build scripts, configuration and patches used to
+produce these binaries, is published as a separate archive on the same release
+page:
+
+    https://github.com/lucasgattas/Forma-Audio-Converter/releases/tag/v0.1.0
+
+Look for the file named:
+
+    forma-0.1.0-corresponding-sources.tar.zst
+
+That archive contains:
+
+    ffmpeg-2a571b606854520cf89804d8030c8b328e621689.tar.gz  FFmpeg source
+    msys2 source packages (PKGBUILD, upstream tarballs and patches) for
+        libmp3lame, mpg123, libogg, libvorbis, libopus, zlib, winpthreads
+    mingw-w64 GCC and CRT source packages (runtime libraries)
+    build.sh, config.log excerpt, package-and-test.sh and the build recipe
+        used for the FFmpeg binaries in this release
+    the license texts reproduced in the licenses/ folder below
+
+The archive is provided at no charge and remains available for at least three
+years from the date of this release, or for as long as this release is offered,
+whichever is longer.
+
+================================================================================
+3. Replacing the FFmpeg libraries
+================================================================================
+
+Because the FFmpeg libraries are distributed as separate dynamic-link libraries
+(.dll files) in the "local-ffmpeg" folder, you may replace any of them with a
+modified, ABI-compatible version of your own build, provided the file names stay
+the same. The application loads these libraries at run time and does not verify
+or restrict them. Rebuilding the libraries from the source archive above, with
+your own modifications, and placing the resulting .dll files in that folder is
+sufficient to run the application with your modified version.
+
+================================================================================
+4. Other bundled libraries
+================================================================================
+
+libmp3lame (LAME 4.0)          LGPL v2 / LGPL v2.1+   licenses/lame-COPYING,
+                               see also licenses/lame-LICENSE
+mpg123 1.33.7                  LGPL v2.1+             licenses/mpg123-COPYING
+libogg 1.3.6                   BSD-style (Xiph.Org)   licenses/libogg-COPYING
+libvorbis 1.3.7                BSD-style (Xiph.Org)   licenses/libvorbis-COPYING
+libopus 1.6.1                  BSD-style, with patent
+                               statement references    licenses/opus-COPYING
+zlib 1.3.2                     zlib License           licenses/zlib-LICENSE
+winpthreads 14.0.0             MIT (mingw-w64) and
+                               BSD (Lockless Inc.)    licenses/libwinpthread-COPYING
+libgcc (GCC 16.2.0 runtime)    GPL v3 with GCC Runtime
+                               Library Exception 3.1  licenses/libgcc-COPYING3,
+                                                      licenses/libgcc-COPYING.RUNTIME
+MinGW-w64 C runtime (static)   permissive notices     licenses/crt-COPYING,
+                                                      licenses/crt-COPYING.MinGW-w64.txt,
+                                                      licenses/crt-COPYING.MinGW-w64-runtime.txt,
+                                                      licenses/crt-COPYING3,
+                                                      licenses/crt-COPYING.RUNTIME
+
+Copies of the full license texts are installed in the "licenses" folder next to
+the application executable and are also reproduced in the source archive.
+
+Naming any project above does not imply endorsement of this application by that
+project or by its copyright holders.
+
+================================================================================
+5. Notices about accuracy
+================================================================================
+
+This notice lists the components that the build records show as included. It is
+a good-faith inventory prepared from the build configuration, the linked
+libraries and the file inventory of the distributed package. If you believe a
+component or notice is missing or inaccurate, please open an issue at
+https://github.com/lucasgattas/Forma-Audio-Converter/issues and it will be
+corrected in a follow-up release.
