@@ -20,7 +20,7 @@ Forma Audio Converter is a small desktop app built with Tauri, Rust and React. I
 ## Download and install
 
 1. Go to the [latest release](https://github.com/lucasgattas/Forma-Audio-Converter/releases/latest).
-2. Download `Forma Audio Converter_0.1.0_x64-setup.exe`.
+2. Download `Forma-Audio-Converter_0.1.0_x64-setup.exe`.
 3. Run it. The app installs for the current user, so no administrator rights are needed.
 
 Requirements: Windows 10 or 11, 64-bit.
