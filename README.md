@@ -2,11 +2,11 @@
 
 A free, open-source audio converter for Windows that converts audio files in batches, entirely on your own computer. No uploads, no accounts, no cloud processing.
 
-Forma Audio Converter is a small desktop app built with Tauri, Rust and React. It takes a list of audio files, converts them to the format you choose, and saves the results next to your originals without ever modifying or overwriting the source files.
+Forma Audio Converter is a small desktop app built with Tauri, Rust and React. It takes a list of audio files, converts them to the format you choose, and saves the results next to your originals without ever modifying or overwriting the source files. You can listen to each track before converting, see its waveform, and jump to any point in it.
 
 **Download the installer:** [latest release](https://github.com/lucasgattas/Forma-Audio-Converter/releases/latest)
 
-![Forma Audio Converter running on Windows 11, with the audio file queue on the left and the output format, quality and destination settings on the right](assets/screenshot.png)
+![Forma Audio Converter running on Windows 11, with two audio files queued on the left, each showing a waveform with its duration, sample rate and channel count, and the output format, quality and destination settings on the right](assets/screenshot.png)
 
 ## What it does
 
@@ -14,15 +14,18 @@ Forma Audio Converter is a small desktop app built with Tauri, Rust and React. I
 - **Six output formats.** MP3, FLAC, WAV (PCM), M4A (AAC), Ogg Vorbis and Opus.
 - **Free quality control.** A continuous bitrate slider from 128 to 320 kbps for lossy formats, plus sample rate, channel count and WAV bit depth. Quality presets are shortcuts, not limits.
 - **Your files stay yours.** Conversion happens locally. Originals are never modified, existing files are never overwritten, and results get a numbered name when a file with that name already exists.
+- **Listen before you convert.** Play any file in the queue, follow the playhead across its waveform, and click or drag on the waveform to start from another point.
+- **One glance per file.** Name, duration, sample rate and channels sit on the same line for every track in the queue, not just the selected one.
+- **Remembers your last session.** Queue, destination and settings come back when you reopen the app, with each format keeping the quality you last chose for it.
 - **Metadata and cover art preserved.** Tags and embedded artwork survive conversion in MP3, FLAC, M4A and Ogg/Opus.
 - **Progress, cancellation and retry.** Follow each file, cancel a running batch, retry only what failed.
 - **Five languages.** English, Brazilian Portuguese, Spanish, French and German, remembered between sessions.
-- **No telemetry, no network access.** The app does not contact any server.
+- **No telemetry, no network access.** The app does not contact any server. Playback reads your local files through a private in-app protocol, and only files already in the queue can be served.
 
 ## Download and install
 
 1. Go to the [latest release](https://github.com/lucasgattas/Forma-Audio-Converter/releases/latest).
-2. Download `Forma-Audio-Converter_0.1.0_x64-setup.exe`.
+2. Download `Forma-Audio-Converter_0.1.2_x64-setup.exe`.
 3. Run it. The app installs for the current user, so no administrator rights are needed.
 
 Requirements: Windows 10 or 11, 64-bit.
@@ -32,12 +35,15 @@ Notes:
 - The installer is not code-signed yet, so Windows SmartScreen may warn about an unknown publisher. Choose **More info**, then **Run anyway**.
 - FFmpeg is included in the installer. You do not need to install anything else.
 - If Windows Defender Controlled Folder Access protects your music folder, the converter may be blocked from writing there. Choose a different destination folder, or allow the app explicitly.
+- Folder selection takes the files directly inside the folder. Subfolders are not included and symbolic links are ignored.
 
-Third-party components and their licenses are listed in `THIRD-PARTY-NOTICES.txt`, which the installer places next to the application. The corresponding source code is published as a release asset (`forma-0.1.0-corresponding-sources.tar.gz`).
+Third-party components and their licenses are listed in `THIRD-PARTY-NOTICES.txt`, which the installer places next to the application. The corresponding source code for the bundled FFmpeg build is published as a release asset, `forma-0.1.2-corresponding-sources.tar.gz`, listed with the installer in the same `SHA256SUMS.txt`.
 
 ## How it works
 
 Forma is a thin, careful front end over FFmpeg. The Rust backend resolves `ffmpeg.exe` and `ffprobe.exe` from the bundled `local-ffmpeg` folder next to the application, verifies each file before use, and runs conversion jobs one at a time so a large batch cannot exhaust the machine.
+
+The waveform is measured, not guessed: the backend decodes each queued file to mono audio at a low sample rate, keeps the peak of every hundred milliseconds, and sends only those numbers to the interface. The web view never receives the audio itself, and the player serves a track only when its path is in the current queue.
 
 Every conversion writes to a temporary file first and only moves it into place once it is complete, so an interrupted run never leaves a half-written file where you expected a result.
 
@@ -57,13 +63,20 @@ npm run build       # frontend only
 npm run tauri build # desktop application and installer
 ```
 
+A release build copies the third-party notices and license texts into `packaging/notices/` before bundling, so the installer carries them:
+
+```sh
+npm run stage:release
+```
+
 ## Project layout
 
 | Path | Contents |
 | --- | --- |
-| `src/` | React frontend: `App.tsx`, translations, styles |
-| `src-tauri/src/` | Rust backend: conversion engine, queue, tool resolution, folder scanning |
+| `src/` | React frontend: `App.tsx`, `Waveform.tsx`, translations, persistence, styles |
+| `src-tauri/src/` | Rust backend: conversion engine, queue, tool resolution, folder scanning, playback protocol, waveform peaks |
 | `src-tauri/tests/`, `tests/` | Rust and Node test suites |
+| `packaging/notices/` | Third-party notices and license texts copied into the installer |
 | `src-tauri/tauri.conf.json` | Desktop application configuration |
 
 Tests:
