@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Forma Audio Converter",
+  "version": "0.1.0",
+  "identifier": "com.egregoralabs.forma",
+  "build": { "beforeDevCommand": "npm run dev", "devUrl": "http://localhost:1420", "beforeBuildCommand": "npm run build", "frontendDist": "../dist" },
+  "app": { "windows": [{ "title": "Forma Audio Converter", "width": 1280, "height": 800, "minWidth": 900, "minHeight": 650 }], "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src ipc: http://ipc.localhost" } },
+  "bundle": { "active": false, "icon": ["icons/icon.ico"] }
+}
